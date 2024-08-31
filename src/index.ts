@@ -23,7 +23,7 @@ app.post("/signup", async (req, res) => {
   }
   const user = await findUser(userDetails.email);
   if (user) {
-    res.status(400).send({ error: "Email already used" });
+    res.status(400).send({ error: "Email already in use" });
     return;
   }
   let hashedPassword = "";
