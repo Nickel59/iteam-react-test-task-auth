@@ -1,9 +1,10 @@
 import bcrypt from "bcryptjs";
 import dotenv from "dotenv";
 import express from "express";
+import type yup from "yup";
 
 import { connectDb, createUser, findUser } from "./odm.js";
-import { isString, verifyUserCredentials } from "./utils.js";
+import { isString, userCredentialsSchema, userDetailsSchema, verifyUserCredentials } from "./utils.js";
 
 dotenv.config();
 
@@ -13,25 +14,26 @@ const app = express();
 app.use(express.json());
 
 app.post("/signup", async (req, res) => {
-  const userCredentials = verifyUserCredentials(req.body?.email, req.body?.password);
-  const [name, desiredJobTitle, aboutMe] = [req.body?.name, req.body?.desiredJobTitle, req.body?.aboutMe];
-  if (!(userCredentials && isString(name) && isString(desiredJobTitle) && isString(aboutMe))) {
+  let userDetails = {} as yup.InferType<typeof userDetailsSchema>;
+  try {
+    userDetails = await userDetailsSchema.validate(req.body);
+  } catch {
     res.status(400).send({ error: "Invalid field" });
     return;
   }
-  const user = await findUser(userCredentials.email);
+  const user = await findUser(userDetails.email);
   if (user) {
     res.status(400).send({ error: "Email already used" });
     return;
   }
   let hashedPassword = "";
   try {
-    hashedPassword = await bcrypt.hash(userCredentials.password, await bcrypt.genSalt());
+    hashedPassword = await bcrypt.hash(userDetails.password, await bcrypt.genSalt());
   } catch {
     res.status(500).send();
     return;
   }
-  createUser(userCredentials.email, hashedPassword, name, desiredJobTitle, aboutMe);
+  createUser(userDetails.email, hashedPassword, userDetails.name, userDetails.desiredJobTitle, userDetails.aboutMe);
   res.status(200).send();
 });
 
@@ -63,6 +65,5 @@ app.post("/login", async (req, res) => {
   res.status(200).send({ name: user.name, desiredJobTitle: user.desiredJobTitle, aboutMe: user.aboutMe });
 });
 
-const port = 8080;
-
+const port = process.env.PORT || 8080;
 app.listen(port, () => console.log(`Server is running on port ${port}`));
