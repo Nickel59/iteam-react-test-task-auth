@@ -41,9 +41,10 @@ app.post("/login", async (req, res) => {
   function send400() {
     res.status(400).send({ error: "Invalid email or password" });
   }
-
-  const userCredentials = verifyUserCredentials(req.body?.email, req.body?.password);
-  if (!userCredentials) {
+  let userCredentials = {} as yup.InferType<typeof userCredentialsSchema>;
+  try {
+    userCredentials = await userCredentialsSchema.validate(req.body);
+  } catch {
     send400();
     return;
   }
