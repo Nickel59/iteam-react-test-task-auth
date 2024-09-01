@@ -4,7 +4,7 @@ import express from "express";
 import type yup from "yup";
 
 import { connectDb, createUser, findUser } from "./odm.js";
-import { userCredentialsSchema, userDetailsSchema } from "./utils.js";
+import { userCredentialsSchema, userDetailsSchema } from "./validation-schemas.js";
 
 dotenv.config();
 
