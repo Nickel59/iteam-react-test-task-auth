@@ -1,4 +1,5 @@
 import bcrypt from "bcryptjs";
+import cors from "cors";
 import dotenv from "dotenv";
 import express from "express";
 import type yup from "yup";
@@ -12,6 +13,7 @@ dotenv.config();
 
 const app = express();
 app.use(express.json());
+app.use(cors());
 
 app.post("/signup", async (req, res) => {
   let userDetails = {} as yup.InferType<typeof userDetailsSchema>;
